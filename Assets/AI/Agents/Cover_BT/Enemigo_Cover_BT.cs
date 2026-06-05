@@ -1,57 +1,3 @@
-// ============================================================
-//  EJERCICIO: COVER SYSTEM + TACTICAL POSITIONING — Unidad 7
-// ============================================================
-//
-//  Combina el Behavior Tree con el sistema de cobertura y
-//  posicionamiento táctico para producir comportamientos de IA
-//  tácticamente conscientes del entorno.
-//
-//  ÁRBOL DE DECISIÓN:
-//  ──────────────────────────────────────────────────────────────────────
-//  Selector (reactivo)
-//  ├── ConditionalSequence "si vida crítica → buscar cover más cercano"
-//  │   ├── Condition: CriticalHealth       (vida < 25%)
-//  │   └── BTAction:  SeekNearestCover
-//  ├── ConditionalSequence "si bajo fuego → buscar cover táctico"
-//  │   ├── Condition: UnderFire            (jugador visible Y vida < 75%)
-//  │   └── BTAction:  SeekTacticalCover
-//  ├── ConditionalSequence "si en cover y hay jugador → asomar y disparar"
-//  │   ├── Condition: InCoverAndSeePlayer
-//  │   └── BTAction:  PeekAndShoot
-//  ├── ConditionalSequence "si veo jugador → flanquear"
-//  │   ├── Condition: CanSeePlayer
-//  │   └── BTAction:  MoveToFlankPoint
-//  └── BTAction: Patrol   ← fallback
-//
-//  CONCEPTOS DE DISEÑO TÁCTICO:
-//  ──────────────────────────────────────────────────────────────────────
-//  · Cover-based combat: el agente prioriza la supervivencia antes que
-//    el daño. Solo "asoma" cuando está en cover.
-//  · Tactical points: el flanqueo evita enfrentamientos frontales.
-//  · Location awareness: el árbol reacciona a cambios de posición,
-//    no solo a proximidad del jugador.
-//
-// ============================================================
-//  PARTES DEL EJERCICIO
-// ============================================================
-//
-//  [PARTE 1 — OBLIGATORIO]
-//    Setup: añade CoverSystem a la escena + varios CoverPoints detrás de
-//    obstáculos. Observa cómo el enemigo busca cobertura al recibir daño.
-//    ¿Qué pasa si todos los CoverPoints están ocupados?
-//
-//  [PARTE 2 — AMPLIACIÓN]
-//    Añade TacticalPoints tipo Flank en la escena.
-//    Implementa MoveToFlankPoint(): el agente debe elegir el mejor punto
-//    de flanqueo y moverse hacia él con Arrive (steering suave).
-//    Pregunta: ¿qué prioridad debería tener el flanqueo vs. el cover?
-//
-//  [PARTE 3 — BONUS]
-//    Implementa PeekAndShoot() con una máquina de estados interna:
-//    1. Peek (asomar 1 segundo) → posición expuesta.
-//    2. Shoot (disparar 0.5 segundos) → Debug.DrawLine al jugador.
-//    3. Duck (agacharse 1.5 segundos) → volver a cover.
-//    Usa un enum interno PeekState { Peek, Shoot, Duck } y un timer.
 
 using UnityEngine;
 
@@ -127,7 +73,6 @@ public class Enemigo_Cover_BT : MonoBehaviour
                 new BTAction(MoveToFlankPoint,      "Flanquear")
             ) { Name = "Flanqueo [Self Abort]" },
 
-            // TODO [PARTE 2]: añade la rama de flanqueo aquí.
 
             new BTAction(Patrol, "Patrullar")
             { Name = "Patrullar (fallback)" }
@@ -147,7 +92,6 @@ public class Enemigo_Cover_BT : MonoBehaviour
                 transform.forward, _velocity.normalized, 10f * Time.deltaTime);
     }
 
-    // ── Condiciones ────────────────────────────────────────────────────────
 
     bool CriticalHealth() => vida < vidaMaxima * vidaCritica;
 
@@ -165,13 +109,11 @@ public class Enemigo_Cover_BT : MonoBehaviour
 
     bool InCoverAndSeePlayer() => _inCover && CanSeePlayer();
 
-    // ── Acciones ──────────────────────────────────────────────────────────
 
     NodeStatus SeekNearestCover()
     {
         GetComponent<Renderer>().material.color = Color.red;
 
-        // Libera el cover anterior si cambió de estrategia.
         if (_currentCover == null || _currentCover.Occupant != this)
         {
             CoverSystem.Instance?.ReleaseCover(this);
@@ -203,7 +145,6 @@ public class Enemigo_Cover_BT : MonoBehaviour
         return MoveTowards(_currentCover.transform.position, new Color(1f, 0.5f, 0f));
     }
 
-    // TODO [PARTE 3]: implementa PeekAndShoot con la sub-máquina de estados.
     NodeStatus PeekAndShoot()
     {
         if (jugador == null)
@@ -248,7 +189,6 @@ public class Enemigo_Cover_BT : MonoBehaviour
         return NodeStatus.Running;
     }
 
-    // TODO [PARTE 2]: mueve el agente hacia el mejor TacticalPoint de flanqueo.
     NodeStatus MoveToFlankPoint()
     {
         GetComponent<Renderer>().material.color = Color.blue;
@@ -286,10 +226,7 @@ public class Enemigo_Cover_BT : MonoBehaviour
         return NodeStatus.Running;
     }
 
-    // ── Utilidades ────────────────────────────────────────────────────────
 
-    // Mueve al agente hacia destination con Arrive steering.
-    // Devuelve Success al llegar, Running en tránsito.
     NodeStatus MoveTowards(Vector3 destination, Color debugColor)
     {
         GetComponent<Renderer>().material.color = debugColor;

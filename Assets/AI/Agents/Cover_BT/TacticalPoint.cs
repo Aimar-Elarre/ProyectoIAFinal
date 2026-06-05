@@ -1,27 +1,3 @@
-// ============================================================
-//  TACTICAL POINT — Unidad 7
-// ============================================================
-//
-//  Un TacticalPoint marca una posición estratégica pre-definida en el mapa.
-//  A diferencia de CoverPoint (que protege de una amenaza dinámica),
-//  TacticalPoint tiene un rol táctico fijo asignado por el diseñador.
-//
-//  TIPOS DISPONIBLES:
-//  ──────────────────────────────────────────────────────────────────────
-//  · Flank    → flanquea al objetivo (llega por el lado).
-//  · Elevated → posición elevada (ventaja de altura y visión).
-//  · Support  → posición de apoyo / reagrupamiento de aliados.
-//  · Ambush   → posición de emboscada (espera al objetivo).
-//
-//  SETUP EN UNITY:
-//  ──────────────────────────────────────────────────────────────────────
-//  1. Crea GameObjects vacíos en posiciones estratégicas del mapa.
-//  2. Elige el Type en el Inspector.
-//  3. El sistema táctico (TacticalSystem en Enemigo_Cover_BT.cs) los
-//     detecta automáticamente.
-//
-//  COLORES EN GIZMOS:
-//    Azul = Flank | Amarillo = Elevated | Verde = Support | Rojo = Ambush.
 
 using UnityEngine;
 
@@ -40,9 +16,6 @@ public class TacticalPoint : MonoBehaviour
     public void Occupy(MonoBehaviour occupant) { IsOccupied = true;  Occupant = occupant; }
     public void Vacate()                        { IsOccupied = false; Occupant = null; }
 
-    // ¿Es buen punto de flanqueo para un agente que ataca a targetPos?
-    // Un buen flanco está al LADO del objetivo (ángulo ≈ 45-135° respecto
-    // al eje agente→objetivo). Dot ≈ 0 = perpendicular = flanqueo perfecto.
     public bool IsGoodFlankFor(Vector3 agentPos, Vector3 targetPos)
     {
         Vector3 agentToTarget = (targetPos - agentPos).normalized;
@@ -51,8 +24,6 @@ public class TacticalPoint : MonoBehaviour
         return dot is > -0.6f and < 0.6f; // ± 53° respecto al eje principal
     }
 
-    // Puntuación táctica (mayor = más prioritario).
-    // Aplica el weight del diseñador y penaliza puntos muy lejanos.
     public float ScoreFor(Vector3 agentPos)
     {
         float dist = Vector3.Distance(agentPos, transform.position);

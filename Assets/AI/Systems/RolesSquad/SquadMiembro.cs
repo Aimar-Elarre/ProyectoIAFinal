@@ -1,55 +1,11 @@
-// ============================================================
-//  EJERCICIO: ROLES EN SQUAD
-// ============================================================
-//
-//  Cada miembro del squad tiene un rol que define su comportamiento
-//  en combate. Los roles se coordinan entre sí a través del EventBus.
-//
-//  ROLES DISPONIBLES:
-//  ──────────────────────────────────────────────────────────────────
-//  · Tank    : avanza hacia el enemigo, absorbe daño, protege al equipo.
-//              FSM: Patrulla → Provocar → Aguantar Fuego → Retroceder
-//  · DPS     : espera a que el tank enganche al enemigo y luego flanquea.
-//              FSM: Patrulla → Esperar_Tank → Flanquear → Atacar
-//  · Support : permanece alejado, cura a aliados con poca vida cercanos.
-//              FSM: Patrulla → Seguir_Squad → Curar → Replegarse
-//
-//  COORDINACIÓN CON EVENTBUS:
-//  ──────────────────────────────────────────────────────────────────
-//  · Tank publica "TankEncontrado" cuando llega a rango del enemigo.
-//  · DPS escucha "TankEncontrado" para iniciar el flanqueo.
-//  · Support escucha "BajoFuego" para priorizar curas.
-//
-//  PARTES DEL EJERCICIO
-//  ──────────────────────────────────────────────────────────────────
-//
-//  [PARTE 1 — OBLIGATORIO]
-//    Crea 3 GameObjects con este componente.
-//    Asigna rol Tank a uno, DPS a otro y Support al tercero.
-//    Observa cómo el DPS espera al Tank antes de atacar.
-//    ¿Qué pasa si hay dos Tanks?
-//
-//  [PARTE 2 — AMPLIACIÓN]
-//    Implementa la lógica de curación del Support:
-//    · Busca al aliado más cercano con vida < umbralCuracion.
-//    · Se mueve hacia él y restaura vida a razón de curacionPorSeg.
-//    · Si no hay aliados que curar, patrulla.
-//
-//  [PARTE 3 — BONUS]
-//    Añade un rol "Scout":
-//    · Explora el mapa en busca del jugador.
-//    · Al detectarlo, publica EnemigoDetectado y vuelve al squad.
-//    · Tiene más velocidad pero menos vida que los demás roles.
 
 using System.Collections.Generic;
 using UnityEngine;
 
 public class SquadMiembro : MonoBehaviour
 {
-    // ── Definición de roles ───────────────────────────────────────────────
     public enum Rol { Tank, DPS, Support }
 
-    // Evento interno para que el DPS sepa cuándo el Tank ha enganchado
     public const string TankEnganchado = "TankEnganchado";
 
     [Header("Rol e identidad")]
@@ -79,7 +35,6 @@ public class SquadMiembro : MonoBehaviour
     [Header("Support")]
     public float curacionPorSeg = 10f;
 
-    // Estado interno por rol
     enum EstadoTank    { Patrulla, Avanzar, Aguantar, Retroceder }
     enum EstadoDPS     { Patrulla, EsperarTank, Flanquear, Atacar }
     enum EstadoSupport { Patrulla, SeguirSquad, Curar, Replegarse }
@@ -109,7 +64,6 @@ public class SquadMiembro : MonoBehaviour
 
     void Update()
     {
-        // Simula daño con Q
         if (UnityEngine.InputSystem.Keyboard.current.qKey.isPressed)
             vida = Mathf.Max(0f, vida - 10f * Time.deltaTime);
 
@@ -121,7 +75,6 @@ public class SquadMiembro : MonoBehaviour
         }
     }
 
-    // ── Comportamiento TANK ───────────────────────────────────────────────
 
     void ActualizarTank()
     {
@@ -141,7 +94,6 @@ public class SquadMiembro : MonoBehaviour
                 float dist = Vector3.Distance(transform.position, jugador.position);
                 if (dist < rangoEnganche)
                 {
-                    // Tank ha llegado a rango — avisa al squad
                     Debug.Log($"[{nombreAgente}] Tank enganchó al enemigo.");
                     EventBus.Publicar(new DatosEvento(TankEnganchado, jugador.position, gameObject));
                     _estadoTank = EstadoTank.Aguantar;
@@ -150,7 +102,6 @@ public class SquadMiembro : MonoBehaviour
                 break;
 
             case EstadoTank.Aguantar:
-                // Se queda parado absorbiendo daño (en escena real haría animación de bloqueo)
                 GetComponent<Renderer>().material.color = Color.red;
                 if (vida < vidaMaxima * 0.3f) _estadoTank = EstadoTank.Retroceder;
                 if (!veJugador) _estadoTank = EstadoTank.Patrulla;
@@ -158,7 +109,6 @@ public class SquadMiembro : MonoBehaviour
 
             case EstadoTank.Retroceder:
                 GetComponent<Renderer>().material.color = new Color(1f, 0.5f, 0f);
-                // Retrocede en dirección opuesta al jugador
                 if (jugador != null)
                 {
                     Vector3 huida = (transform.position - jugador.position).normalized;
@@ -169,7 +119,6 @@ public class SquadMiembro : MonoBehaviour
         }
     }
 
-    // ── Comportamiento DPS ────────────────────────────────────────────────
 
     void ActualizarDPS()
     {
@@ -182,7 +131,6 @@ public class SquadMiembro : MonoBehaviour
                 break;
 
             case EstadoDPS.EsperarTank:
-                // Espera cerca del centro del squad sin avanzar
                 GetComponent<Renderer>().material.color = Color.yellow;
                 Debug.Log($"[{nombreAgente}] DPS esperando al Tank...");
                 if (_tankHaEnganchado) _estadoDPS = EstadoDPS.Flanquear;
@@ -190,7 +138,6 @@ public class SquadMiembro : MonoBehaviour
 
             case EstadoDPS.Flanquear:
                 GetComponent<Renderer>().material.color = new Color(0.8f, 1f, 0f);
-                // Mueve hacia la posición lateral del jugador para flanquear
                 if (jugador != null)
                 {
                     Vector3 flanco = jugador.position + jugador.right * 3f;
@@ -212,7 +159,6 @@ public class SquadMiembro : MonoBehaviour
         }
     }
 
-    // ── Comportamiento SUPPORT ────────────────────────────────────────────
 
     void ActualizarSupport()
     {
@@ -226,7 +172,6 @@ public class SquadMiembro : MonoBehaviour
 
             case EstadoSupport.SeguirSquad:
                 GetComponent<Renderer>().material.color = new Color(0.8f, 0.8f, 1f);
-                // Se mantiene detrás del squad
                 SquadMiembro tank = BuscarPorRol(Rol.Tank);
                 if (tank != null)
                 {
@@ -254,7 +199,6 @@ public class SquadMiembro : MonoBehaviour
         }
     }
 
-    // ── Callbacks de eventos ──────────────────────────────────────────────
 
     void AlTankEnganchado(DatosEvento e)
     {
@@ -277,10 +221,8 @@ public class SquadMiembro : MonoBehaviour
     void AlAliadoCaido(DatosEvento e)
     {
         Debug.Log($"[{nombreAgente}] Un aliado ha caído. Ajustando estrategia.");
-        // Opcional: reposicionar o cambiar de objetivo
     }
 
-    // ── Utilidades ────────────────────────────────────────────────────────
 
     bool VerJugador()
     {

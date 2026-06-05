@@ -1,45 +1,3 @@
-// ============================================================
-//  EJERCICIO: COORDINACIÓN DE ATAQUES
-// ============================================================
-//
-//  CoordinadorAtaque es el cerebro táctico del squad.
-//  Decide cuándo y cómo atacar, y da la señal a cada AgenteAtacante.
-//
-//  MODOS DE COORDINACIÓN:
-//  ──────────────────────────────────────────────────────────────────
-//  · Simultaneo  : todos atacan al mismo tiempo (embestida masiva).
-//  · Secuencial  : los agentes atacan en turnos, uno por uno.
-//  · PorOlas     : grupos de agentes atacan en oleadas sucesivas.
-//
-//  FASES DEL COORDINADOR:
-//  ──────────────────────────────────────────────────────────────────
-//  Esperar → Preparar → Atacar → Reorganizar → Esperar
-//
-//  · Esperar     : aguarda hasta que el jugador entre en rango.
-//  · Preparar    : posiciona a los agentes en sus puntos de ataque.
-//  · Atacar      : emite la señal según el modo de coordinación.
-//  · Reorganizar : espera a que todos vuelvan y reinicia el ciclo.
-//
-//  PARTES DEL EJERCICIO
-//  ──────────────────────────────────────────────────────────────────
-//
-//  [PARTE 1 — OBLIGATORIO]
-//    Crea 4 AgenteAtacante.
-//    Asigna este CoordinadorAtaque.
-//    Prueba los modos Simultaneo y Secuencial.
-//    ¿Cuál es más peligroso tácticamente? ¿Por qué?
-//
-//  [PARTE 2 — AMPLIACIÓN]
-//    Implementa el modo PorOlas:
-//    · Divide los agentes en grupos de tamanoOla.
-//    · Cada ola espera a que la anterior llegue a rango antes de avanzar.
-//    · Usa una coroutine o un timer para el intervalo entre olas.
-//
-//  [PARTE 3 — BONUS]
-//    Añade condición de abortar el ataque:
-//    Si más de la mitad de los agentes mueren durante el ataque,
-//    el coordinador emite la señal de retirada y todos se repliegan.
-//    Usa el EventBus para la señal de retirada.
 
 using System.Collections.Generic;
 using UnityEngine;
@@ -70,7 +28,6 @@ public class CoordinadorAtaque : MonoBehaviour
     [Tooltip("Tiempo de espera tras el ataque antes de reiniciar.")]
     public float tiempoReorganizacion = 4f;
 
-    // Lista de agentes registrados al coordinador
     List<AgenteAtacante> _agentes = new List<AgenteAtacante>();
 
     FaseCordinador _fase = FaseCordinador.Esperar;
@@ -78,12 +35,10 @@ public class CoordinadorAtaque : MonoBehaviour
     int            _turnoActual;       // usado en modo Secuencial
     int            _olaActual;         // usado en modo PorOlas
 
-    // Evento publicado cuando el coordinador ordena retirada
     public const string EventoRetirada = "Retirada";
 
     void Start()
     {
-        // Registra automáticamente todos los AgenteAtacante en la escena
         _agentes.AddRange(FindObjectsByType<AgenteAtacante>(FindObjectsSortMode.None));
         Debug.Log($"[Coordinador] {_agentes.Count} agentes registrados.");
     }
@@ -107,7 +62,6 @@ public class CoordinadorAtaque : MonoBehaviour
         }
     }
 
-    // ── Fases del coordinador ─────────────────────────────────────────────
 
     void FaseEsperar()
     {
@@ -122,7 +76,6 @@ public class CoordinadorAtaque : MonoBehaviour
 
     void FasePreparar()
     {
-        // Espera a que todos los agentes estén en posición
         bool todosPosicionados = true;
         foreach (var a in _agentes)
             if (!a.EstaEnPosicion()) { todosPosicionados = false; break; }
@@ -147,7 +100,6 @@ public class CoordinadorAtaque : MonoBehaviour
                 break;
         }
 
-        // La fase termina cuando todos los agentes hayan completado su ataque
         bool todosCompletados = true;
         foreach (var a in _agentes)
             if (!a.AtaqueCompletado()) { todosCompletados = false; break; }
@@ -171,11 +123,9 @@ public class CoordinadorAtaque : MonoBehaviour
         }
     }
 
-    // ── Control de agentes ────────────────────────────────────────────────
 
     void OrdenarPosicionamiento()
     {
-        // Asigna a cada agente una posición de ataque alrededor del jugador
         for (int i = 0; i < _agentes.Count; i++)
         {
             float angulo = i * (360f / _agentes.Count) * Mathf.Deg2Rad;
@@ -193,7 +143,6 @@ public class CoordinadorAtaque : MonoBehaviour
 
         if (modo == ModoAtaque.Simultaneo)
         {
-            // Todos atacan a la vez
             foreach (var a in _agentes)
                 a.OrdenaAtacar();
         }

@@ -1,54 +1,3 @@
-// ============================================================
-//  EJERCICIO: FLOCKING (BOIDS) — Unidad 6
-// ============================================================
-//
-//  Flocking simula el comportamiento de grupos: bandadas, cardúmenes,
-//  manadas. Formalizado por Craig Reynolds (1986) con tres reglas:
-//
-//  1. COHESIÓN    → moverse hacia el centro de masa del grupo.
-//  2. SEPARACIÓN  → alejarse de los vecinos demasiado cercanos.
-//  3. ALINEACIÓN  → igualar la dirección de movimiento del grupo.
-//
-//  La combinación de estas fuerzas produce comportamiento emergente:
-//  patrones complejos sin ningún control centralizado.
-//
-//  SETUP EN UNITY:
-//  ──────────────────────────────────────────────────────────────────────
-//  1. Crea un Prefab con este componente + MeshRenderer (cápsula o esfera).
-//  2. Instancia 10-20 copias en la escena.
-//  3. Ajusta los pesos en el Inspector para observar diferentes emergencias:
-//     · separationWeight alto → todos se dispersan, no forman grupo.
-//     · cohesionWeight alto   → colapsan en un punto.
-//     · alignmentWeight alto  → se mueven en formación rígida.
-//
-//  LEER ANTES DE IMPLEMENTAR:
-//  ──────────────────────────────────────────────────────────────────────
-//  Los tres métodos (ComputeCohesion, ComputeSeparation, ComputeAlignment)
-//  tienen su lógica implementada. Tu tarea en PARTE 1 es ENTENDER el código
-//  y responder las preguntas de los TODO.
-//
-// ============================================================
-//  PARTES DEL EJERCICIO
-// ============================================================
-//
-//  [PARTE 1 — OBLIGATORIO]
-//    Lee las implementaciones de Cohesión, Separación y Alineación.
-//    Responde:
-//      a) ¿Por qué ComputeSeparation divide por la distancia (1/dist)?
-//      b) ¿Qué pasa si separationRadius >= neighborRadius?
-//      c) ¿Por qué ComputeAlignment usa Velocity en vez de transform.forward?
-//
-//  [PARTE 2 — AMPLIACIÓN]
-//    Añade un "líder" (leaderTarget): los boids usan Arrive hacia ese
-//    punto. Descomenta el bloque de leaderTarget en Update() y ajusta
-//    el peso leaderWeight para ver cómo el grupo sigue al líder.
-//
-//  [PARTE 3 — BONUS]
-//    Añade obstacle avoidance con Physics.SphereCast:
-//    · Lanza un SphereCast en la dirección de movimiento del agente.
-//    · Si detecta un obstáculo (LayerMask = "Obstacle"), suma una
-//      fuerza perpendicular al normal del impacto.
-//    ¿Cómo afecta la distancia de detección al comportamiento del grupo?
 
 using System.Collections.Generic;
 using UnityEngine;
@@ -95,7 +44,6 @@ public class FlockingAgent : MonoBehaviour
 
         Vector3 steering = cohesion + separation + alignment;
 
-        // [PARTE 2]: descomenta para activar la fuerza de líder.
         if (leaderTarget != null)
         {
             Vector3 toLeader = SteeringBehaviors.Arrive(
@@ -115,7 +63,6 @@ public class FlockingAgent : MonoBehaviour
                 transform.forward, _velocity.normalized, 10f * Time.deltaTime);
     }
 
-    // ── Búsqueda de vecinos ───────────────────────────────────────────────
 
     List<FlockingAgent> FindNeighbors()
     {
@@ -132,11 +79,7 @@ public class FlockingAgent : MonoBehaviour
         return neighbors;
     }
 
-    // ── Reglas de Boids ───────────────────────────────────────────────────
 
-    // COHESIÓN: mueve el agente hacia el centro de masa del vecindario.
-    // ¿Por qué se normaliza el resultado? → para que solo indique DIRECCIÓN,
-    // no fuerza absoluta. El peso (cohesionWeight) controla la magnitud.
     Vector3 ComputeCohesion(List<FlockingAgent> neighbors)
     {
         if (neighbors.Count == 0) return Vector3.zero;
@@ -149,9 +92,6 @@ public class FlockingAgent : MonoBehaviour
         return (centerOfMass - transform.position).normalized;
     }
 
-    // SEPARACIÓN: empuja el agente lejos de vecinos demasiado próximos.
-    // La ponderación (1/dist) amplifica la repulsión cuando el vecino es MUY cercano.
-    // TODO [PARTE 1a]: ¿qué ocurre si eliminas la división por dist y usas solo .normalized?
     Vector3 ComputeSeparation(List<FlockingAgent> neighbors)
     {
         Vector3 steer = Vector3.zero;
@@ -170,9 +110,6 @@ public class FlockingAgent : MonoBehaviour
         return count > 0 ? (steer / count).normalized : Vector3.zero;
     }
 
-    // ALINEACIÓN: iguala la velocidad/dirección del grupo.
-    // Usa Velocity (no transform.forward) porque refleja la dirección REAL de movimiento.
-    // TODO [PARTE 1c]: ¿en qué caso transform.forward y Velocity serían iguales?
     Vector3 ComputeAlignment(List<FlockingAgent> neighbors)
     {
         if (neighbors.Count == 0) return transform.forward;

@@ -1,21 +1,3 @@
-// ============================================================
-//  AgenteAtacante
-// ============================================================
-//
-//  Agente individual que recibe órdenes del CoordinadorAtaque.
-//  Tiene su propia máquina de estados simple:
-//
-//  Esperar → MoviéndoseAPos → Listo → Atacar → Completado
-//
-//  · Esperar       : aguarda la asignación de posición.
-//  · MoviéndoseAPos: se desplaza a su punto de ataque.
-//  · Listo         : en posición, esperando la señal de ataque.
-//  · Atacar        : avanza y ataca al objetivo.
-//  · Completado    : ataque terminado, espera reseteo.
-//
-//  EJERCICIO:
-//  · Observa la diferencia visual entre ataque Simultaneo y Secuencial.
-//  · Añade un Gizmo que dibuje el vector de ataque en rojo durante Atacar.
 
 using System.Collections.Generic;
 using UnityEngine;
@@ -77,9 +59,7 @@ public class AgenteAtacante : MonoBehaviour
         }
     }
 
-    // ── API pública para el coordinador ──────────────────────────────────
 
-    // Asigna la posición táctica de ataque y el objetivo a golpear
     public void AsignarPosicionAtaque(Vector3 posicion, Transform objetivo)
     {
         _posAtaque = posicion;
@@ -89,7 +69,6 @@ public class AgenteAtacante : MonoBehaviour
         Debug.Log($"[{name}] Posición asignada: {posicion}");
     }
 
-    // El coordinador ordena iniciar el ataque
     public void OrdenaAtacar()
     {
         if (_estado != Estado.Listo) return;
@@ -98,13 +77,10 @@ public class AgenteAtacante : MonoBehaviour
         ActualizarColor();
     }
 
-    // Devuelve true si el agente está en su posición y listo
     public bool EstaEnPosicion() => _estado == Estado.Listo;
 
-    // Devuelve true cuando el ataque ha concluido
     public bool AtaqueCompletado() => _estado == Estado.Completado;
 
-    // Reinicia el agente para el siguiente ciclo
     public void Resetear()
     {
         _estado    = Estado.Esperar;
@@ -113,7 +89,6 @@ public class AgenteAtacante : MonoBehaviour
         ActualizarColor();
     }
 
-    // ── Utilidades ────────────────────────────────────────────────────────
 
     void MoverHacia(Vector3 destino)
     {

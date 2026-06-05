@@ -1,27 +1,3 @@
-// ============================================================
-//  EJERCICIO: BLACKBOARD — Parte 2b (Ampliación)
-// ============================================================
-//
-//  HealthSensor monitoriza la salud del enemigo y escribe
-//  el resultado en la pizarra cada frame.
-//
-//  CLAVES QUE DEBES ESCRIBIR:
-//    BB.Health    (float) → valor numérico actual de la vida
-//    BB.LowHealth (bool)  → true si vida < 50 % de la vida máxima
-//
-//  NOTA SOBRE EL DISEÑO:
-//    El sensor recibe la vida a través de una función delegada
-//    (Func<float>) en lugar de una referencia directa al MonoBehaviour.
-//    Esto desacopla el sensor del script concreto del enemigo:
-//    mañana podrías conectarlo a cualquier otra fuente de salud
-//    sin tocar el sensor.
-//
-//    Uso desde Enemigo_Blackboard.Start():
-//      _healthSensor = new HealthSensor(() => health, maxHealth, _blackboard);
-//                                       ↑
-//                                 lambda que lee el campo "health"
-//
-// ============================================================
 
 using System;
 
@@ -37,14 +13,6 @@ public class HealthSensor : SensorBase
         _maxHealth = maxHealth;
     }
 
-    // TODO [PARTE 2b]: Implementa Sense().
-    //
-    // 1. Obtén la vida actual: float health = _getHealth();
-    //
-    // 2. Escribe en BB.Health el valor numérico.
-    //
-    // 3. Calcula si la vida es baja (< 50 % de _maxHealth) y
-    //    escribe el resultado en BB.LowHealth.
     public override void Sense()
     {
         float health = _getHealth();

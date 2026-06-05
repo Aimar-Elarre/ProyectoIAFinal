@@ -1,7 +1,5 @@
 using System;
 
-// Nodo hoja que envuelve una acción.
-// La acción devuelve Running mientras se ejecuta, Success al terminar.
 
 public class BTAction : BTNode
 {

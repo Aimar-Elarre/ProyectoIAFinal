@@ -2,15 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>
-/// Adjunta este script al agente para que calcule y siga un camino A* hacia un destino.
-///
-/// Uso:
-///   1. Añade este componente al GameObject que quieres que busque camino.
-///   2. Asigna un Transform como "Target" en el Inspector.
-///   3. Asegúrate de que AStarPathfinder y GridManager están en la escena.
-///   4. Pulsa la tecla configurada en "Follow Key" para que el agente siga el camino.
-/// </summary>
 public class PathRequester : MonoBehaviour
 {
     [Header("Destino")]
@@ -24,13 +15,11 @@ public class PathRequester : MonoBehaviour
     [Tooltip("Tecla para iniciar/detener el seguimiento del camino")]
     public Key followKey = Key.Space;
 
-    // ── Estado interno ────────────────────────────────────────────────────────
     Vector3    _previousTargetPos;
     List<Node> _currentPath;
     int        _pathIndex;
     bool       _isFollowing;
 
-    // ─────────────────────────────────────────────────────────────────────────
 
     void Start()
     {
@@ -42,14 +31,12 @@ public class PathRequester : MonoBehaviour
     {
         if (target == null) return;
 
-        // Recalcular si el destino se movió más de medio nodo
         if (Vector3.Distance(target.position, _previousTargetPos) > 0.5f)
         {
             RequestPath();
             _isFollowing = false;
         }
 
-        // Iniciar / detener seguimiento con la tecla configurada
         if (Keyboard.current != null && Keyboard.current[followKey].wasPressedThisFrame)
             ToggleFollow();
 
@@ -57,7 +44,6 @@ public class PathRequester : MonoBehaviour
             FollowPath();
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
 
     void RequestPath()
     {
@@ -88,15 +74,12 @@ public class PathRequester : MonoBehaviour
             return;
         }
 
-        // Posición del nodo actual manteniendo la Y del agente
         Vector3 nodePos = _currentPath[_pathIndex].worldPosition;
         Vector3 target3D = new Vector3(nodePos.x, transform.position.y, nodePos.z);
 
-        // Mover hacia el nodo
         transform.position = Vector3.MoveTowards(
             transform.position, target3D, moveSpeed * Time.deltaTime);
 
-        // Rotar hacia la dirección de movimiento (solo en Y)
         Vector3 dir = new Vector3(
             target3D.x - transform.position.x, 0f,
             target3D.z - transform.position.z);
@@ -106,14 +89,10 @@ public class PathRequester : MonoBehaviour
                 Quaternion.LookRotation(dir),
                 10f * Time.deltaTime);
 
-        // Avanzar al siguiente nodo cuando se llega al actual
         if (Vector3.Distance(transform.position, target3D) < nodeReachDistance)
             _pathIndex++;
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Visualización del camino en el editor
-    // ─────────────────────────────────────────────────────────────────────────
 
     void OnDrawGizmos()
     {
@@ -121,7 +100,6 @@ public class PathRequester : MonoBehaviour
 
         for (int i = 0; i < _currentPath.Count; i++)
         {
-            // Nodos ya recorridos → gris; pendientes → cyan
             Gizmos.color = (i < _pathIndex) ? Color.gray : Color.cyan;
 
             if (i == 0)

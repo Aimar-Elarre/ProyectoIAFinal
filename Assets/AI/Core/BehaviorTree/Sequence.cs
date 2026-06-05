@@ -1,11 +1,3 @@
-// Sequence (nodo AND): evalúa hijos en orden y devuelve Success
-// solo si TODOS tienen éxito. Si cualquiera falla, la Sequence falla.
-//
-// Uso típico: expresar "si condición, entonces acción".
-//
-//   Sequence
-//   ├── Condition: ¿veo al jugador?   ← si falla, la Sequence falla
-//   └── Action: Perseguir             ← solo se ejecuta si la condición pasa
 
 public class Sequence : BTNode
 {

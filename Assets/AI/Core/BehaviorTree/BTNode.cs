@@ -1,5 +1,3 @@
-// Contrato mínimo de cualquier nodo del árbol.
-// Todos los nodos —compuestos y hoja— implementan Tick().
 
 public abstract class BTNode
 {

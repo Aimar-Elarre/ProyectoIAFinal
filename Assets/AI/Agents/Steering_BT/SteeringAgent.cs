@@ -1,33 +1,3 @@
-// ============================================================
-//  EJERCICIO: STEERING AGENT — Unidad 6
-// ============================================================
-//
-//  SteeringAgent aplica uno de los behaviors de SteeringBehaviors.cs
-//  para mover un agente de forma fluida. La velocidad actual se
-//  interpola hacia la velocidad deseada (steering suave).
-//
-//  EXPERIMENTO SEEK vs ARRIVE:
-//  ──────────────────────────────────────────────────────────────────────
-//  1. Añade este componente a un GameObject con Renderer.
-//  2. Asigna un Transform como "target".
-//  3. Cambia Mode entre Seek y Arrive en el Inspector.
-//  4. Observa: Seek llega y oscila; Arrive frena y para.
-//
-//  TODO [PARTE 1 — OBLIGATORIO]:
-//    Cambia Mode a Seek. Observa el overshooting.
-//    Luego cambia a Arrive. ¿En qué valor de slowRadius empieza a frenar?
-//
-//  TODO [PARTE 2 — AMPLIACIÓN]:
-//    Implementa el behavior "Wander" (movimiento errático natural):
-//    · Proyecta un círculo frente al agente (wanderCircleDistance adelante).
-//    · Elige un punto en la circunferencia según un ángulo que varía suavemente.
-//    · Aplica Seek hacia ese punto.
-//    Parámetros necesarios: wanderCircleDistance, wanderCircleRadius, wanderAngle.
-//
-//  TODO [PARTE 3 — BONUS]:
-//    Combina Flee con Arrive: el agente huye mientras hay amenaza (Flee),
-//    pero llega suavemente a un destino de evacuación (Arrive).
-//    Pondera ambas fuerzas: flee * 0.7f + arrive * 0.3f.
 
 using UnityEngine;
 
@@ -61,7 +31,6 @@ public class SteeringAgent : MonoBehaviour
 
         Vector3 desiredVelocity = ComputeDesiredVelocity();
 
-        // Interpolación suave hacia la velocidad deseada (steering force).
         _velocity = Vector3.MoveTowards(_velocity, desiredVelocity, steeringForce * Time.deltaTime);
 
         transform.position += _velocity * Time.deltaTime;

@@ -1,55 +1,3 @@
-// ============================================================
-//  EJERCICIO: BT + STEERING — Unidad 6
-// ============================================================
-//
-//  Integra los steering behaviors (Seek, Flee, Arrive) con el Behavior
-//  Tree para producir movimiento fluido en lugar de teletransporte.
-//
-//  CLAVE CONCEPTUAL:
-//  ──────────────────────────────────────────────────────────────────────
-//  · El BT decide QUÉ hacer (perseguir, huir, patrullar).
-//  · El steering behavior decide CÓMO moverse (con qué fuerza, en qué arco).
-//
-//  Comparación con Enemigo_BT.cs (el original):
-//    Antes:  transform.position += dir * speed * Time.deltaTime   ← snap directo
-//    Ahora:  _velocity → Arrive/Seek/Flee → MoveTowards            ← suave
-//
-//  COMPORTAMIENTO:
-//  ──────────────────────────────────────────────────────────────────────
-//  Selector (reactivo)
-//  ├── ConditionalSequence "si vida baja → Flee steering"
-//  │   ├── Condition: LowHealth
-//  │   └── BTAction:  ApplyFlee
-//  ├── ConditionalSequence "si veo jugador → Arrive al jugador"
-//  │   ├── Condition: CanSeePlayer
-//  │   └── BTAction:  ApplyArrive
-//  └── BTAction: PatrolWithArrive   ← Arrive hacia waypoints
-//
-//  DIFERENCIA VISUAL (compara con Enemigo_BT):
-//    · Al cambiar de estado, el movimiento es suave (no snap).
-//    · Al llegar al jugador usa Arrive: desacelera en lugar de entrar en bucle.
-//    · La patrulla es fluida: curva natural hacia el siguiente waypoint.
-//
-// ============================================================
-//  PARTES DEL EJERCICIO
-// ============================================================
-//
-//  [PARTE 1 — OBLIGATORIO]
-//    Cambia ApplyArrive por ApplySeek en la rama de persecución.
-//    Observa el overshooting. Documenta: ¿a qué distancia empieza
-//    a frenar Arrive con slowRadius=3? ¿Y con slowRadius=1?
-//
-//  [PARTE 2 — AMPLIACIÓN]
-//    Añade una condición EstaCerca() y una acción ApplyPursue():
-//    · EstaCerca: distancia al jugador < attackRange.
-//    · ApplyPursue: usa SteeringBehaviors.Pursue con la velocidad
-//      del jugador. Necesitarás una referencia a Rigidbody del jugador
-//      o calcular la velocidad aproximada.
-//
-//  [PARTE 3 — BONUS]
-//    Combina flocking + BT: añade un FlockingAgent al mismo GameObject.
-//    En la acción de patrulla, suma la fuerza de flocking a la velocidad
-//    calculada por Arrive. ¿Qué fuerza tiene más peso?
 
 using UnityEngine;
 
@@ -112,14 +60,12 @@ public class Enemigo_Steering_BT : MonoBehaviour
         SimulateDamage();
         Regenerate();
 
-        // Aplica velocidad acumulada (las acciones la modifican).
         transform.position += _velocity * Time.deltaTime;
         if (_velocity.sqrMagnitude > 0.01f)
             transform.forward = Vector3.Lerp(
                 transform.forward, _velocity.normalized, 10f * Time.deltaTime);
     }
 
-    // ── Condiciones ────────────────────────────────────────────────────────
 
     bool LowHealth() => vida < vidaMaxima * 0.5f;
 
@@ -129,7 +75,6 @@ public class Enemigo_Steering_BT : MonoBehaviour
         return Vector3.Distance(transform.position, jugador.position) < rangoDeteccion;
     }
 
-    // ── Acciones (aplican steering) ────────────────────────────────────────
 
     NodeStatus ApplyFlee()
     {
@@ -165,7 +110,6 @@ public class Enemigo_Steering_BT : MonoBehaviour
         return NodeStatus.Running;
     }
 
-    // ── Utilidades ────────────────────────────────────────────────────────
 
     void SimulateDamage()
     {

@@ -1,12 +1,3 @@
-// Selector (nodo OR): evalúa hijos en orden y devuelve el primero
-// que NO falle. Si todos fallan, el propio Selector falla.
-//
-// Uso típico: expresar prioridades. El hijo de mayor prioridad va primero.
-//
-//   Selector
-//   ├── RamaAltaPrioridad   ← se evalúa primero
-//   ├── RamaMediaPrioridad
-//   └── RamaBajaPrioridad   ← fallback
 
 public class Selector : BTNode
 {

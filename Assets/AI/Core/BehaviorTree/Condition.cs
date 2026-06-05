@@ -1,7 +1,5 @@
 using System;
 
-// Nodo hoja que envuelve una condición booleana.
-// Devuelve Success si la condición es verdadera, Failure si es falsa.
 
 public class Condition : BTNode
 {

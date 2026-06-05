@@ -23,6 +23,13 @@ public class GuardStealthBT : MonoBehaviour
     public float alertCooldown = 3f;
     public float alertInvestigationTime = 10f;
 
+    [Header("Game Over")]
+    public GameObject uiToActivate;
+    public bool ensureDisabledAtStart = true;
+    public bool pauseAudio = true;
+
+    bool _gameOverTriggered;
+
     Blackboard _blackboard;
     VisionSensor _visionSensor;
 
@@ -50,6 +57,9 @@ public class GuardStealthBT : MonoBehaviour
     void Start()
     {
         _blackboard = new Blackboard();
+        if (ensureDisabledAtStart && uiToActivate != null)
+            uiToActivate.SetActive(false);
+
         _visionSensor = new VisionSensor(transform, player, detectionRange, _blackboard, hiddenDetectionMultiplier);
         BuildTree();
     }
@@ -143,7 +153,31 @@ public class GuardStealthBT : MonoBehaviour
         if (player != null)
             transform.LookAt(player);
 
+        TriggerGameOver();
         return NodeStatus.Running;
+    }
+
+    void TriggerGameOver()
+    {
+        if (_gameOverTriggered) return;
+        _gameOverTriggered = true;
+
+        if (uiToActivate != null)
+            uiToActivate.SetActive(true);
+
+        Time.timeScale = 0f;
+
+        if (pauseAudio)
+            AudioListener.pause = true;
+
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+
+        try
+        {
+            EventBus.Publicar(new DatosEvento("PausaJuego", transform.position, gameObject, true));
+        }
+        catch { }
     }
 
     NodeStatus Chase()

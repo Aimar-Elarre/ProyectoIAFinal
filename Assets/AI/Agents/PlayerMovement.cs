@@ -17,6 +17,7 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        if (Time.timeScale == 0f) return;
         Vector2 input = GetInput();
         Vector3 movement = new Vector3(input.x, 0f, input.y);
 
